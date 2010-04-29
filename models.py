@@ -49,11 +49,11 @@ class Cargo(models.model):
         return "%s pallets of %s to %s" % (self.quantity, self.commodity, self.shipment.destination)
 
 class Shipment(models.Model):
-    ''' Transport of stuff between two places '''
+    ''' Transport of stuff(s) between two places '''
     STATUS_CHOICES = (
         ('P', 'Planned shipment'),
         ('T', 'Shipment in transit'),
-        ('D', 'Completed shipment'),
+        ('D', 'Shipment delivered'),
     )
     status = models.CharField(max_length=2, choices=STATUS_CHOICES)
     cargo = models.ManyToManyField(Cargo)
@@ -76,11 +76,14 @@ class Shipment(models.Model):
 
     @classmethod
     def active(cls):
-        return cls.objects.exclude(status="delivered")
+        return cls.objects.exclude(status="D")
+
+class Waypoint(Location):
+    ''' Location where a person has seen the stuff being transported during the journey '''
+    updated = models.DateTimeField(default=datetime.datetime.utcnow)
 
 class Tracking(models.Model):
     ''' Updates by people tracking the location of the stuff being transported '''
     shipment = models.ForeignKey(Shipment)
-    updated = models.DateTimeField(default=datetime.datetime.utcnow)
-    tracked_by = models.ForeignKey(Contact)
-    waypoint = models.ForeignKey(Location)
+    seen_by = models.ForeignKey(Contact)
+    waypoint = models.ManyToMany(Waypoint)

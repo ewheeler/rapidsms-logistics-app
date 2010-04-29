@@ -7,13 +7,20 @@ from django.db import models
 from rapidsms.models import Contact
 from rapidsms.contrib.locations.models import Location
 
-#class School(Destination):
+#class School(Location):
 #    address
 #    km_to_DEO
 #    GPS_south
 #    GPS_east
 #    contact
 #    code
+#    satellite number
+
+#class Headmaster(Contact):
+#   name
+#   phone
+#   alternate phone
+#   school
 
 class Commodity(models.Model):
     ''' Stuff '''
@@ -64,9 +71,9 @@ class Shipment(models.Model):
     created = models.DateTimeField(default=datetime.datetime.utcnow)
     modified = models.DateTimeField(default=datetime.datetime.utcnow)
 
-    shipping_date = models.DateTimeField()
-    expected_delivery_date = models.DateTimeField()
-    actual_delivery_date = models.DateTimeField()
+    shipping_time = models.DateTimeField()
+    expected_delivery_time = models.DateTimeField()
+    actual_delivery_time = models.DateTimeField()
 
     def __unicode__(self):
         return "Shipment of %s pallets of %s to %s" % (self.cargo.quantity, self.cargo.commodity, self.destination)
@@ -78,12 +85,13 @@ class Shipment(models.Model):
     def active(cls):
         return cls.objects.exclude(status="D")
 
-class Waypoint(Location):
-    ''' Location where a person has seen the stuff being transported during the journey '''
+class Waypoint(models.Model):
+    ''' Location where a person has seen stuff during the journey '''
     updated = models.DateTimeField(default=datetime.datetime.utcnow)
+    location = models.ForeignKey(Location)
+    seen_by = models.ForeignKey(Contact)
 
 class Tracking(models.Model):
-    ''' Updates by people tracking the location of the stuff being transported '''
+    ''' Locations of the stuff reported throughout the transport'''
     shipment = models.ForeignKey(Shipment)
-    seen_by = models.ForeignKey(Contact)
     waypoint = models.ManyToMany(Waypoint)

@@ -7,33 +7,16 @@ from django.db import models
 from rapidsms.models import Contact
 from rapidsms.contrib.locations.models import Location
 
-class Waypoint(Location):
-    last_updated = models.DateTimeField(auto_now=True)
-    name = models.CharField(max_length=160)
-    location = models.ForeignKey(Location)
-
-class Origin(Waypoint):
-
-    def __unicode__(self):
-        return "%s" % (self.name)
-
-class Destination(Waypoint):
-
-    class Meta:
-        verbose_name = "Delivery destination"
-
-    def __unicode__(self):
-        return "%s" % (self.name)
-
-class School(Destination):
-    address
-    km_to_DEO
-    GPS_south
-    GPS_east
-    contact
-    code
+#class School(Destination):
+#    address
+#    km_to_DEO
+#    GPS_south
+#    GPS_east
+#    contact
+#    code
 
 class Commodity(models.Model):
+    ''' Stuff '''
     STATUS_CHOICES = (
         ('PL', 'pallets'),
         ('TM', 'Tons (metric)'),
@@ -57,6 +40,7 @@ class Commodity(models.Model):
         return self.name
 
 class Cargo(models.model):
+    ''' An amount of stuff being transported '''
     commodity = models.ForeignKey(Commodity)
     quantity = models.CharField(max_length=160)
     shipment = models.ForeignKey('Shipment')
@@ -65,16 +49,17 @@ class Cargo(models.model):
         return "%s pallets of %s to %s" % (self.quantity, self.commodity, self.shipment.destination)
 
 class Shipment(models.Model):
+    ''' Transport of stuff between two places '''
     STATUS_CHOICES = (
         ('P', 'Planned shipment'),
         ('T', 'Shipment in transit'),
         ('D', 'Completed shipment'),
     )
     status = models.CharField(max_length=2, choices=STATUS_CHOICES)
-    cargo = models.ForeignKey(Cargo)
+    cargo = models.ManyToManyField(Cargo)
 
-    origin = models.ForeignKey(Destination)
-    destination = models.ForeignKey(Destination)
+    origin = models.ForeignKey(Location)
+    destination = models.ForeignKey(Location)
 
     created = models.DateTimeField(default=datetime.datetime.utcnow)
     modified = models.DateTimeField(default=datetime.datetime.utcnow)
@@ -94,7 +79,8 @@ class Shipment(models.Model):
         return cls.objects.exclude(status="delivered")
 
 class Tracking(models.Model):
+    ''' Updates by people tracking the location of the stuff being transported '''
     shipment = models.ForeignKey(Shipment)
     updated = models.DateTimeField(default=datetime.datetime.utcnow)
     tracked_by = models.ForeignKey(Contact)
-    waypoint = models.ForeignKey(Waypoint)
+    waypoint = models.ForeignKey(Location)

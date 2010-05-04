@@ -24,7 +24,7 @@ from rapidsms.contrib.locations.models import Location
 
 class Commodity(models.Model):
     ''' Stuff '''
-    STATUS_CHOICES = (
+    UNIT_CHOICES = (
         ('PL', 'pallets'),
         ('TM', 'Tons (metric)'),
         ('KG', 'Kilograms'),
@@ -38,19 +38,20 @@ class Commodity(models.Model):
     name = models.CharField(max_length=160)
     slug = models.CharField(max_length=6, unique=True)
 
+    # unit of commodity for shipping purposes
+    unit = models.CharField(max_length=2, choices=UNIT_CHOICES)
+
+    # per unit shipping volume and weight of commodity
     volume = models.CharField(max_length=160)
     weight = models.CharField(max_length=160)
-
-    unit = models.CharField(max_length=2, choices=UNIT_CHOICES)
 
     def __unicode__(self):
         return self.name
 
-class Cargo(models.model):
+class Cargo(models.Model):
     ''' An amount of stuff being transported '''
     commodity = models.ForeignKey(Commodity)
     quantity = models.CharField(max_length=160)
-    shipment = models.ForeignKey('Shipment')
 
     def __unicode__(self):
         return "%s pallets of %s to %s" % (self.quantity, self.commodity, self.shipment.destination)
@@ -65,14 +66,18 @@ class Shipment(models.Model):
     status = models.CharField(max_length=2, choices=STATUS_CHOICES)
     cargo = models.ManyToManyField(Cargo)
 
-    origin = models.ForeignKey(Location)
-    destination = models.ForeignKey(Location)
+    origin = models.ForeignKey(Location, related_name='origin')
+    destination = models.ForeignKey(Location, related_name='destination')
 
     created = models.DateTimeField(default=datetime.datetime.utcnow)
     modified = models.DateTimeField(default=datetime.datetime.utcnow)
 
+    # datetime when transport begins
     shipping_time = models.DateTimeField()
+    # estimated delivery datetime
     expected_delivery_time = models.DateTimeField()
+    # actual datetime of shipment delivery
+    # TODO derive from a ShipmentSighting at destination?
     actual_delivery_time = models.DateTimeField()
 
     def __unicode__(self):
@@ -85,13 +90,13 @@ class Shipment(models.Model):
     def active(cls):
         return cls.objects.exclude(status="D")
 
-class Waypoint(models.Model):
-    ''' Location where a person has seen stuff during the journey '''
+class ShipmentSighting(models.Model):
+    ''' Location where a person has seen stuff during its shipment '''
     updated = models.DateTimeField(default=datetime.datetime.utcnow)
     location = models.ForeignKey(Location)
     seen_by = models.ForeignKey(Contact)
 
-class Tracking(models.Model):
-    ''' Locations of the stuff reported throughout the transport'''
+class ShipmentRoute(models.Model):
+    ''' Collection of locations where the stuff has been seen during shipment '''
     shipment = models.ForeignKey(Shipment)
-    waypoint = models.ManyToMany(Waypoint)
+    sightings = models.ManyToManyField(ShipmentSighting)

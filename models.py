@@ -7,20 +7,6 @@ from django.db import models
 from rapidsms.models import Contact
 from rapidsms.contrib.locations.models import Location
 
-#class School(Location):
-#    address
-#    km_to_DEO
-#    GPS_south
-#    GPS_east
-#    contact
-#    code
-#    satellite number
-
-#class Headmaster(Contact):
-#   name
-#   phone
-#   alternate phone
-#   school
 
 class Commodity(models.Model):
     ''' Stuff '''

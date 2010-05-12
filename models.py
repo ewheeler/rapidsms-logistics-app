@@ -22,7 +22,7 @@ class Commodity(models.Model):
         ('DS', 'Doses'),
     )
     name = models.CharField(max_length=160)
-    slug = models.CharField(max_length=6, unique=True)
+    slug = models.CharField(max_length=20, unique=True)
 
     # unit of commodity for shipping purposes
     unit = models.CharField(max_length=2, choices=UNIT_CHOICES)

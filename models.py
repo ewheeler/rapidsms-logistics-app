@@ -51,7 +51,7 @@ class CargoBase(models.Model):
         abstract = True
 
     def __unicode__(self):
-        return "%s pallets of %s to %s" % (self.quantity, self.commodity, self.shipment.destination)
+        return "%s %s of %s" % (self.quantity, self.commodity.get_unit_display(), self.commodity)
 
 class Cargo(CargoBase):
     ''' An amount of stuff being transported '''
@@ -84,7 +84,11 @@ class ShipmentBase(models.Model):
         abstract = True
 
     def __unicode__(self):
-        return "Shipment of %s pallets of %s to %s" % (self.cargo.quantity, self.cargo.commodity, self.destination)
+        cargos_names = []
+        for cargo in self.cargos.all():
+            if cargo.commodity.slug not in cargos_names:
+                cargos_names.append(cargo.commodity.slug)
+        return "Shipment of %s from %s to %s" % (" ,".join(cargos_names), self.origin.name, self.destination.name)
 
     @classmethod
     def active(cls):

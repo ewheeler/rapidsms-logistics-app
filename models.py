@@ -25,6 +25,10 @@ class CommodityBase(models.Model):
     )
     name = models.CharField(max_length=160)
     slug = models.CharField(max_length=20, unique=True)
+    # List of alternate spellings, abbreviations, etc that can be specified
+    # via webui. eg, enter books, book for object where slug=textbooks
+    aliases = models.CharField(max_length=160, blank=True, null=True,\
+        help_text="List of alternate spellings, abbreviations, etc. Separate each alias with a single comma and no spaces.")
 
     # unit of commodity for shipping purposes
     unit = models.CharField(max_length=3, choices=UNIT_CHOICES)
@@ -38,6 +42,26 @@ class CommodityBase(models.Model):
 
     def __unicode__(self):
         return self.name
+
+    def alias_list(self):
+        ''' Returns a list of self.aliases '''
+        if self.aliases is not None:
+            return self.aliases.split(',')
+        else:
+            return None
+
+    def has_alias(self, term):
+        ''' Checks whether a search term is in a commodity's list
+            of aliases. Returns None if commodity has no aliases,
+            and True or False otherwise. '''
+        if self.aliases is not None:
+            alias_list = self.alias_list()
+            if term in alias_list:
+                return True
+            else:
+                return False
+        else:
+            return None
 
 class Commodity(CommodityBase):
     ''' Stuff '''
@@ -110,6 +134,9 @@ class ShipmentSightingBase(models.Model):
     class Meta:
         abstract = True
 
+    def __unicode__(self):
+        return "%s seen by %s at %s" % (self.observed_cargo, self.seen_by.name, self.location.name)
+
 class ShipmentSighting(ShipmentSightingBase):
     ''' Location where a person has seen stuff during its shipment '''
     __metaclass__ = ExtensibleModelBase
@@ -120,6 +147,9 @@ class ShipmentRouteBase(models.Model):
 
     class Meta:
         abstract = True
+
+    def __unicode__(self):
+        return "%s sightings of %s" % (self.sightings.count(), self.shipment)
 
 class ShipmentRoute(ShipmentRouteBase):
     ''' Collection of locations where the stuff has been seen during shipment '''

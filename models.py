@@ -88,7 +88,10 @@ class ShipmentBase(models.Model):
         for cargo in self.cargos.all():
             if cargo.commodity.slug not in cargos_names:
                 cargos_names.append(cargo.commodity.slug)
-        return "%s from %s to %s" % (", ".join(cargos_names), self.origin.name, self.destination.name)
+        if self.origin is not None:
+            return "%s from %s to %s" % (", ".join(cargos_names), self.origin.name, self.destination.name)
+        else:
+            return "%s from ?? to %s" % (", ".join(cargos_names), self.destination.name)
 
     @classmethod
     def active(cls):

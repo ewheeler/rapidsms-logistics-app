@@ -1,0 +1,10 @@
+Logistics app is a collection of extensible models and utilities
+for logistics management:
+    - keep track of details (units, dimensions, etc) of commodities
+    - record all planned, in-transit, and completed shipments of cargo
+    - log updates about cargo location and status during transit
+
+DEPENDS ON:
+Locations
+
+Logistics app may be used in conjunction with Inventory app
